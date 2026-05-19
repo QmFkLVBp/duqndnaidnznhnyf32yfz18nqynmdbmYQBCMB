@@ -2,12 +2,14 @@
 chcp 65001 >nul
 title Webhook Sender
 
-echo Відправка вебхука...
+set WEBHOOK_URL=https://eset-bot-sender--0xw1zard.replit.app/api/eset-webhook
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"$body = @{message='Test payload executed successfully'; timestamp=(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); hostname=$env:COMPUTERNAME} | ConvertTo-Json; ^
-Invoke-RestMethod -Uri 'https://eset-bot-sender--0xw1zard.replit.app/api/eset-webhook' -Method Post -Body $body -ContentType 'application/json'"
+:: Формируем JSON (можно изменить текст в кавычках)
+set JSON_PAYLOAD={"text":"Тестове повідомлення від Bad-Pi лабораторії","timestamp":"%date% %time%","hostname":"%COMPUTERNAME%"}
+
+echo Отправка данных на сервер...
+curl -X POST -H "Content-Type: application/json" -d "%JSON_PAYLOAD%" %WEBHOOK_URL%
 
 echo.
-echo Вебхук відправлено. Натисніть будь-яку клавішу...
+echo Готово. Нажмите любую клавишу...
 pause >nul
