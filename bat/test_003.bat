@@ -23,7 +23,7 @@ $f.Add_KeyDown({ if($_.KeyCode -eq 'Escape') { $f.Close() } }); ^
 $f.ShowDialog(); ^
 $body = @{text='%MSG_TEXT%'; timestamp=(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'); hostname=$env:COMPUTERNAME} | ConvertTo-Json; ^
 try { ^
-    $response = Invoke-RestMethod -Uri '%WEBHOOK_URL%' -Method Post -Body $body -ContentType 'application/json'; ^
+    $response = Invoke-RestMethod -Uri '%WEBHOOK_URL%' -Method Put -Body $body -ContentType 'application/json'; ^
     Write-Host '✅ Успіх. Сервер відповів:' $response ^
 } catch { ^
     Write-Host '❌ Помилка:' $_.Exception.Message ^
